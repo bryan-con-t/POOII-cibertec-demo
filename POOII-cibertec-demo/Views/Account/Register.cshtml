@@ -1,0 +1,12 @@
+﻿@model POOII_cibertec_demo.Models.ViewModels.RegisterViewModel
+<h2>Registro</h2>
+<form asp-action="Register" method="post">
+    <div asp-validation-summary="All"></div>
+    <label>Email</label>
+    <input asp-for="Email" class="form-control" />
+    <label>Contraseña</label>
+    <input asp-for="Password" type="password" class="form-control" />
+    <label>Nombre completo</label>
+    <input asp-for="FullName" class="form-control" />
+    <button type="submit" class="btn btn-primary mt-3">Registrarme</button>
+</form>
