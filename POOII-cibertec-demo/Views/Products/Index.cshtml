@@ -1,0 +1,37 @@
+﻿@model IEnumerable<POOII_cibertec_demo.Models.Product>
+
+@{
+    ViewData["Title"] = "Listado de Productos";
+}
+
+<h2>Productos</h2>
+
+<p>
+    <a class="btn btn-primary" href="/Products/Create">Crear nuevo</a>
+</p>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.nombre</td>
+                <td>@item.precio</td>
+                <td>@(item.IsCompleted ? "Comprado" : "Pendiente")</td>
+                <td>
+                    <a href="/Products/Edit/@item.Id">Editar</a> |
+                    <a href="/Products/Details/@item.Id">Detalles</a> |
+                    <a href="/Products/Delete/@item.Id">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

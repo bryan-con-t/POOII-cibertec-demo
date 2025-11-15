@@ -1,9 +1,15 @@
-﻿<h2>Bienvenido a Cibertec Demo</h2>
-@if (ViewBag.Mensaje != null)
-{
-    <div class="alert alert-success">@ViewBag.Mensaje</div>
+﻿@{
+    ViewData["Title"] = "Inicio";
+    var ahora = DateTime.Now;
+    var listaEjemplo = new List<string> { "Pan", "Leche", "Huevos", "Cereal" };
 }
-<p>
-    <a href="/Account/Register" class="btn btn-primary">Registrarse</a>
-    <a href="/Account/Login" class="btn btn-secondary">Iniciar sesión</a>
-</p>
+<h2>Bienvenido a Cibertec Demo</h2>
+<p>Fecha y hora actual: <strong>@ahora</strong></p>
+<h4>Ejemplo de listado con Razor:</h4>
+<ul>
+    @foreach (var item in listaEjemplo)
+    {
+        <li>@item</li>
+    }
+</ul>
+<p>Total de elementos: <strong>@listaEjemplo.Count</strong></p>

@@ -1,0 +1,12 @@
+﻿@model POOII_cibertec_demo.Models.Product
+
+<h2>¿Eliminar Producto?</h2>
+
+<p><strong>Nombre:</strong> @Model.nombre</p>
+<p><strong>Precio:</strong> @Model.precio</p>
+
+<form asp-action="Delete">
+    <input type="hidden" asp-for="Id" />
+    <button class="btn btn-danger">Eliminar</button>
+    <a class="btn btn-secondary" href="/Products/Index">Cancelar</a>
+</form>

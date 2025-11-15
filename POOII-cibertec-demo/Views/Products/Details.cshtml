@@ -1,0 +1,9 @@
+﻿@model POOII_cibertec_demo.Models.Product
+
+<h2>Detalles del producto</h2>
+
+<p><strong>Nombre:</strong> @Model.nombre</p>
+<p><strong>Precio:</strong> @Model.precio</p>
+<p><strong>Estado:</strong> @(Model.IsCompleted ? "Comprado" : "Pendiente")</p>
+
+<a href="/Products/Index">Volver</a>
