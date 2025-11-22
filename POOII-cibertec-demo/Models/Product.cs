@@ -11,6 +11,10 @@ namespace POOII_cibertec_demo.Models
 
         public decimal precio { get; set; }
 
-        public bool IsCompleted { get; set; } = false;
+        public int cantidad { get; set; }
+        
+        public DateTime fechaRegistro { get; set; }
+
+        public bool isCompleted { get; set; } = false;
     }
 }

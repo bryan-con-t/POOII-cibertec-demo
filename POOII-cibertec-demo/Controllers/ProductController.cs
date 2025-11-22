@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using POOII_cibertec_demo.Data;
 using POOII_cibertec_demo.Models;
+using POOII_cibertec_demo.Repositories;
 
 namespace POOII_cibertec_demo.Controllers
 {
@@ -15,9 +17,43 @@ namespace POOII_cibertec_demo.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            string nombre = null,
+            decimal? precioMin = null,
+            int? cantidadMin = null,
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null,
+            bool? isCompleted = null,
+            int page = 1,
+            int pageSize = 5)
         {
-            return View(await _context.Products.ToListAsync());
+            // Crear repo usando la cadena de conexión del contexto
+            var connectionString = _context.Database.GetDbConnection().ConnectionString;
+            var repo = new ProductRepository(connectionString);
+
+            //Llamada al repo (async)
+            var (items, total) = await repo.FiltrarPaginadoAsync(
+                nombre,
+                precioMin,
+                cantidadMin,
+                fechaDesde,
+                fechaHasta,
+                isCompleted,
+                page,
+                pageSize);
+
+            // Preparar ViewBag para que la vista mantenga los valores en los inputs
+            ViewBag.Nombre = nombre ?? "";
+            ViewBag.PrecioMin = precioMin?.ToString("0.##") ?? "";
+            ViewBag.CantidadMin = cantidadMin?.ToString() ?? "";
+            // Paginación
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalRegistros = total;
+            ViewBag.TotalPaginas = (int)Math.Ceiling((double)total / pageSize);
+
+            return View(items);
+            // return View(await _context.Products.ToListAsync());
         }
 
         // GET: Products/Details/5
