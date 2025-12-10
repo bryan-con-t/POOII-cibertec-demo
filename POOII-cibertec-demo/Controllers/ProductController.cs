@@ -10,10 +10,12 @@ namespace POOII_cibertec_demo.Controllers
     public class ProductsController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public ProductsController(AppDbContext context)
+        public ProductsController(AppDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         // GET: Products
@@ -102,20 +104,54 @@ namespace POOII_cibertec_demo.Controllers
         }
 
         // POST: Products/Edit/5
-        [HttpPost]
+        /*[HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Product product)
+        public async Task<IActionResult> Edit(int id, ProductCommand command)
         {
-            if (id != product.Id) return NotFound();
-
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
             if (ModelState.IsValid)
             {
-                _context.Update(product);
+                command.UpdateProduct(product);
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "Producto actualizado exitosamente.";
+                TempData["Success"] = "Producto actualizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             return View(product);
+        }*/
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Product product, IFormFile imagen)
+        {
+            var productoDb = await _context.Products.FindAsync(id);
+            if (productoDb == null) return NotFound();
+            if (!ModelState.IsValid) return View(product);
+            if (imagen != null && imagen.Length > 0)
+            {
+                var uploads = Path.Combine(_env.WebRootPath, "images");
+                if (!Directory.Exists(uploads)) Directory.CreateDirectory(uploads);
+
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imagen.FileName);
+                var filePath = Path.Combine(uploads, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await imagen.CopyToAsync(stream);
+                }
+
+                productoDb.imagenPath = fileName;
+            }
+            productoDb.nombre = product.nombre;
+            productoDb.precio = product.precio;
+            productoDb.cantidad = product.cantidad;
+            productoDb.isCompleted = product.isCompleted;
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Producto actualizado correctamente.";
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Products/Delete/5
