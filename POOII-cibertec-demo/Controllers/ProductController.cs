@@ -1,8 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using POOII_cibertec_demo.Application.Products.Commands;
+using POOII_cibertec_demo.Application.Products.Services;
 using POOII_cibertec_demo.Data;
+using POOII_cibertec_demo.Infrastructure.Files;
+using POOII_cibertec_demo.Infrastructure.Persistence;
 using POOII_cibertec_demo.Models;
+using POOII_cibertec_demo.Models.ViewModels;
 using POOII_cibertec_demo.Repositories;
 
 namespace POOII_cibertec_demo.Controllers
@@ -31,7 +36,7 @@ namespace POOII_cibertec_demo.Controllers
         {
             // Crear repo usando la cadena de conexión del contexto
             var connectionString = _context.Database.GetDbConnection().ConnectionString;
-            var repo = new ProductRepository(connectionString);
+            var repo = new POOII_cibertec_demo.Repositories.ProductRepository(connectionString);
 
             //Llamada al repo (async)
             var (items, total) = await repo.FiltrarPaginadoAsync(
@@ -93,15 +98,27 @@ namespace POOII_cibertec_demo.Controllers
         }
 
         // GET: Products/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null) return NotFound();
+            var repo = new POOII_cibertec_demo.Infrastructure.Persistence.ProductRepository(_context);
+            var product = await repo.GetByIdAsync(id);
 
-            var product = await _context.Products.FindAsync(id);
-            if (product == null) return NotFound();
+            if (product == null)
+                return NotFound();
 
-            return View(product);
+            var vm = new ProductEditViewModel
+            {
+                Id = product.Id,
+                nombre = product.nombre,
+                precio = product.precio,
+                cantidad = product.cantidad,
+                isCompleted = product.isCompleted,
+                imagenPath = product.imagenPath
+            };
+
+            return View(vm);
         }
+
 
         // POST: Products/Edit/5
         /*[HttpPost]
@@ -125,34 +142,39 @@ namespace POOII_cibertec_demo.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Product product, IFormFile imagen)
+        public async Task<IActionResult> Edit(ProductEditViewModel vm, IFormFile imagen)
         {
-            var productoDb = await _context.Products.FindAsync(id);
-            if (productoDb == null) return NotFound();
-            if (!ModelState.IsValid) return View(product);
-            if (imagen != null && imagen.Length > 0)
+            if (!ModelState.IsValid)
             {
-                var uploads = Path.Combine(_env.WebRootPath, "images");
-                if (!Directory.Exists(uploads)) Directory.CreateDirectory(uploads);
-
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imagen.FileName);
-                var filePath = Path.Combine(uploads, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
                 {
-                    await imagen.CopyToAsync(stream);
+                    Console.WriteLine(error.ErrorMessage);
                 }
-
-                productoDb.imagenPath = fileName;
+                return View(vm);
             }
-            productoDb.nombre = product.nombre;
-            productoDb.precio = product.precio;
-            productoDb.cantidad = product.cantidad;
-            productoDb.isCompleted = product.isCompleted;
-            await _context.SaveChangesAsync();
+
+            var imageStorage = new ImageStorage(_env);
+            var imagePath = await imageStorage.SaveAsync(imagen);
+
+            var command = new UpdateProductCommand
+            {
+                Id = vm.Id,
+                nombre = vm.nombre,
+                precio = vm.precio,
+                cantidad = vm.cantidad,
+                isCompleted = vm.isCompleted,
+                ImagenPath = imagePath
+            };
+
+            var repo = new Infrastructure.Persistence.ProductRepository(_context);
+            var service = new ProductService(repo);
+
+            await service.UpdateAsync(command);
+
             TempData["Success"] = "Producto actualizado correctamente.";
             return RedirectToAction(nameof(Index));
         }
+
 
         // GET: Products/Delete/5
         public async Task<IActionResult> Delete(int? id)

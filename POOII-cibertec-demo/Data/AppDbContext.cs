@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using POOII_cibertec_demo.Models;
+using POOII_cibertec_demo.Domain.Entities;
 
 namespace POOII_cibertec_demo.Data
 {
@@ -10,6 +11,6 @@ namespace POOII_cibertec_demo.Data
         {
         }
 
-        public DbSet<Product> Products { get; set; }
+        public DbSet<POOII_cibertec_demo.Domain.Entities.Product> Products { get; set; }
     }
 }
