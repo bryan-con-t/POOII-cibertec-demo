@@ -31,9 +31,20 @@ namespace POOII_cibertec_demo.Controllers
             DateTime? fechaDesde = null,
             DateTime? fechaHasta = null,
             bool? isCompleted = null,
-            int page = 1,
-            int pageSize = 5)
+            int? page = null,
+            int? pageSize = null)
         {
+            // Recuperar valores de la sesión si no se proporcionan
+            nombre ??= HttpContext.Session.GetString("Nombre");
+            if (precioMin == null && decimal.TryParse(HttpContext.Session.GetString("PrecioMin"), out var pMin))
+                precioMin = pMin;
+            if (cantidadMin == null && int.TryParse(HttpContext.Session.GetString("CantidadMin"), out var cMin))
+                cantidadMin = cMin;
+            if (isCompleted == null && bool.TryParse(HttpContext.Session.GetString("IsCompleted"), out var completed))
+                isCompleted = completed;
+            page ??= HttpContext.Session.GetInt32("Page") ?? 1;
+            pageSize ??= HttpContext.Session.GetInt32("PageSize") ?? 5;
+
             // Crear repo usando la cadena de conexión del contexto
             var connectionString = _context.Database.GetDbConnection().ConnectionString;
             var repo = new POOII_cibertec_demo.Repositories.ProductRepository(connectionString);
@@ -46,18 +57,27 @@ namespace POOII_cibertec_demo.Controllers
                 fechaDesde,
                 fechaHasta,
                 isCompleted,
-                page,
-                pageSize);
+                page.Value,
+                pageSize.Value);
+
+            // Guardar los datos en la sesión para usarlos en futuras solicitudes
+            HttpContext.Session.SetString("Nombre", nombre ?? "");
+            HttpContext.Session.SetString("PrecioMin", precioMin?.ToString() ?? "");
+            HttpContext.Session.SetString("CantidadMin", cantidadMin?.ToString() ?? "");
+            HttpContext.Session.SetString("IsCompleted", isCompleted?.ToString() ?? "");
+            HttpContext.Session.SetInt32("Page", page.Value);
+            HttpContext.Session.SetInt32("PageSize", pageSize.Value);
 
             // Preparar ViewBag para que la vista mantenga los valores en los inputs
             ViewBag.Nombre = nombre ?? "";
             ViewBag.PrecioMin = precioMin?.ToString("0.##") ?? "";
             ViewBag.CantidadMin = cantidadMin?.ToString() ?? "";
+
             // Paginación
             ViewBag.Page = page;
             ViewBag.PageSize = pageSize;
             ViewBag.TotalRegistros = total;
-            ViewBag.TotalPaginas = (int)Math.Ceiling((double)total / pageSize);
+            ViewBag.TotalPaginas = (int)Math.Ceiling((double)total / pageSize.Value);
 
             return View(items);
             // return View(await _context.Products.ToListAsync());
@@ -198,6 +218,18 @@ namespace POOII_cibertec_demo.Controllers
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
             TempData["Success"] = "Producto eliminado exitosamente.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult ClearFilters()
+        {
+            HttpContext.Session.Remove("Nombre");
+            HttpContext.Session.Remove("PrecioMin");
+            HttpContext.Session.Remove("CantidadMin");
+            HttpContext.Session.Remove("IsCompleted");
+            HttpContext.Session.Remove("Page");
+            HttpContext.Session.Remove("PageSize");
+
             return RedirectToAction(nameof(Index));
         }
     }

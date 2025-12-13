@@ -35,7 +35,7 @@
 
         <div class="col-12 mt-2">
             <button type="submit" class="btn btn-primary me-2">Filtrar</button>
-            <button type="button" id="btnClear" class="btn btn-outline-secondary">Limpiar</button>
+            <a asp-action="ClearFilters" asp-controller="Products" class="btn btn-outline-secondary">Limpiar</a>
 
             <label class="ms-3 align-middle">Items por página:</label>
             <input type="number" name="pageSize" min="1" value="@pageSize" style="width:80px;" class="form-control d-inline-block ms-2" />

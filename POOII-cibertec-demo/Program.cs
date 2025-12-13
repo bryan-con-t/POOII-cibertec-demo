@@ -17,6 +17,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 // 3️⃣ Agregar soporte MVC
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddDistributedMemoryCache(); // habilitar memoria distribuida
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(20); // tiempo de sesión
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 var app = builder.Build();
 
 // 4️⃣ Middleware
@@ -24,8 +32,10 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
 }
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseSession(); // habilitar middleware de sesión
 app.UseAuthentication();
 app.UseAuthorization();
 
