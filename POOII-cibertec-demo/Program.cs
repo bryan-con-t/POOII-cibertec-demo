@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using POOII_cibertec_demo.Data;
 using POOII_cibertec_demo.Models;
@@ -16,6 +16,16 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 // 3️⃣ Agregar soporte MVC
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddCors(options =>
+{
+  options.AddPolicy("AngularOnly", policy =>
+  {
+    policy.WithOrigins("http://localhost:4200")
+    .AllowAnyHeader()
+    .AllowAnyMethod();
+  });
+});
 
 builder.Services.AddDistributedMemoryCache(); // habilitar memoria distribuida
 builder.Services.AddSession(options =>
@@ -35,9 +45,11 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("AngularOnly");
 app.UseSession(); // habilitar middleware de sesión
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 
 // 5️⃣ Rutas
 app.MapControllerRoute(

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using POOII_cibertec_demo.Application.Products.Commands;
@@ -220,6 +220,34 @@ namespace POOII_cibertec_demo.Controllers
             TempData["Success"] = "Producto eliminado exitosamente.";
             return RedirectToAction(nameof(Index));
         }
+    
+    [HttpGet]
+    [Route("api/products")]
+    public async Task<IActionResult> GetProductsApi(
+      string nombre = null,
+      decimal? precioMin = null,
+      int? cantidadMin = null,
+      int page = 1,
+      int pageSize = 5)
+    {
+      var connectionString = _context.Database.GetDbConnection().ConnectionString;
+      var repo = new Repositories.ProductRepository(connectionString);
+      var (items, total) = await repo.FiltrarPaginadoAsync(
+        nombre,
+        precioMin,
+        cantidadMin,
+        null,
+        null,
+        null,
+        page,
+        pageSize
+        );
+      return Ok(new
+      {
+        data = items,
+        total = total
+      });
+    }
 
         public IActionResult ClearFilters()
         {
